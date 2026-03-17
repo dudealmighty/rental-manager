@@ -44,12 +44,18 @@ class DatabaseManager:
             st.error(f"Database Connection Error: {e}")
             return False
 
-    def get_df(self, tab_name):
+       def get_df(self, tab_name):
         try:
             worksheet = self.sheet.worksheet(tab_name)
             data = worksheet.get_all_records()
-            return pd.DataFrame(data)
-        except: return pd.DataFrame()
+            df = pd.DataFrame(data)
+            # Debug: Print if empty
+            if df.empty:
+                st.warning(f"Warning: Tab '{tab_name}' is empty or headers missing.")
+            return df
+        except Exception as e:
+            st.error(f"Error reading '{tab_name}': {e}")
+            return pd.DataFrame()
 
     def append_row(self, tab_name, row_data):
         try:
@@ -124,6 +130,11 @@ def login_view():
         users = db.get_df("Users")
         # Simple validation (Logic for hashed passwords can be added later)
         # For now, direct comparison as we set 'admin123' in setup
+               # Check if dataframe is empty first
+        if users.empty:
+            st.error("Database 'Users' table is empty or inaccessible.")
+            return
+
         match = users[(users['Username'] == u) & (users['Password'] == p)]
         
         if not match.empty:
