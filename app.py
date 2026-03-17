@@ -324,18 +324,30 @@ def admin_view():
 def main():
     if "db_connected" not in st.session_state:
         try:
-            # NEW: Check for GCP_CREDS_JSON string first
-            if "GCP_CREDS_JSON" in st.secrets:
-                import json
+            import base64
+            import json
+            
+            # METHOD 1: Read Base64 String (Recommended)
+            if "GCP_CREDS_B64" in st.secrets:
+                b64_string = st.secrets["GCP_CREDS_B64"]
+                decoded_bytes = base64.b64decode(b64_string)
+                creds_dict = json.loads(decoded_bytes)
+                db.connect(creds_dict)
+                st.session_state.db_connected = True
+            
+            # METHOD 2: Fallback to JSON string (Old method)
+            elif "GCP_CREDS_JSON" in st.secrets:
                 creds_dict = json.loads(st.secrets["GCP_CREDS_JSON"])
                 db.connect(creds_dict)
                 st.session_state.db_connected = True
+            
+            # METHOD 3: Old TOML dict
             elif "GCP_CREDS" in st.secrets:
-                # Fallback to old method
                 db.connect(st.secrets["GCP_CREDS"])
                 st.session_state.db_connected = True
+                
             else:
-                st.error("Secrets not found.")
+                st.error("No credentials found in Secrets.")
                 st.stop()
                 
         except Exception as e:
