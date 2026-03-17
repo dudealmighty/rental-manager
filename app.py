@@ -11,7 +11,7 @@ import io
 import requests
 import uuid
 import warnings
-
+import json 
 # Ignore the Google AI warning for now
 warnings.filterwarnings("ignore", category=FutureWarning)
 
@@ -322,22 +322,26 @@ def admin_view():
 
 # --- MAIN CONTROLLER ---
 def main():
-    # Check connection status
     if "db_connected" not in st.session_state:
         try:
-            # Attempt connection
-            success = db.connect(st.secrets["GCP_CREDS"])
-            if success:
+            # NEW: Check for GCP_CREDS_JSON string first
+            if "GCP_CREDS_JSON" in st.secrets:
+                import json
+                creds_dict = json.loads(st.secrets["GCP_CREDS_JSON"])
+                db.connect(creds_dict)
+                st.session_state.db_connected = True
+            elif "GCP_CREDS" in st.secrets:
+                # Fallback to old method
+                db.connect(st.secrets["GCP_CREDS"])
                 st.session_state.db_connected = True
             else:
-                # If connect returns False (handled internal error)
-                st.error("Connection Failed: Check if Service Account email is shared to the Sheet.")
+                st.error("Secrets not found.")
                 st.stop()
+                
         except Exception as e:
             st.error(f"Critical Secret Error: {e}")
             st.stop()
 
-    # If we are here, DB is connected.
     if not st.session_state.logged_in:
         login_view()
     else:
@@ -352,4 +356,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
