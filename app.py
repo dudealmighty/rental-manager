@@ -321,14 +321,22 @@ def admin_view():
 
 # --- MAIN CONTROLLER ---
 def main():
+    # Check connection status
     if "db_connected" not in st.session_state:
         try:
-            db.connect(st.secrets["GCP_CREDS"])
-            st.session_state.db_connected = True
+            # Attempt connection
+            success = db.connect(st.secrets["GCP_CREDS"])
+            if success:
+                st.session_state.db_connected = True
+            else:
+                # If connect returns False (handled internal error)
+                st.error("Connection Failed: Check if Service Account email is shared to the Sheet.")
+                st.stop()
         except Exception as e:
             st.error(f"Critical Secret Error: {e}")
             st.stop()
 
+    # If we are here, DB is connected.
     if not st.session_state.logged_in:
         login_view()
     else:
