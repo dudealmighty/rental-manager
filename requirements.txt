@@ -1,0 +1,7 @@
+streamlit
+gspread
+google-generativeai
+pandas
+oauth2client
+pillow
+python-dateutil
