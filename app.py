@@ -319,6 +319,7 @@ def admin_view():
         if st.button("Update Deadline"):
             st.success(f"Deadline updated to day {d_day}")
 
+
 # --- MAIN CONTROLLER ---
 def main():
     # Check connection status
@@ -351,3 +352,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
